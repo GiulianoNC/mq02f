@@ -43,6 +43,8 @@ android {
     }
 
     defaultConfig {
+        multiDexEnabled true
+
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.quantum.mq02f"
         // You can update the following values to match your application needs.
@@ -51,6 +53,8 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        minSdkVersion 20 // Aumenta la versión mínima a 20 o a la que desees
+
     }
 
     buildTypes {

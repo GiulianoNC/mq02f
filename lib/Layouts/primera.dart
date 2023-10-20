@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
+//import '../Herramientas/global.dart';
 import '../Herramientas/global.dart';
 import '../Herramientas/variables_globales.dart';
 import '../Parseo/mq0203a.dart';
+import 'package:image_picker/image_picker.dart';
 
-String baseUrl = "http://quantumconsulting.servehttp.com:925/";
+import 'Incidente.dart';
+
+String baseUrl = direc;
 String ordenTipo = "";
 String estado = "";
 String ordenN = "";
+int? selectedOrderNumber;
 
 class Primera extends StatefulWidget {
   @override
@@ -53,8 +58,8 @@ class _PrimeraState extends State<Primera> {
   Future<List <Mq0203ADatareq>?> _getListado() async {
     var url = Uri.parse(baseUrl + api);
     var _payload = json.encode({
-      "EMISOR":"3",
-      "ESTADO": "MA",
+      "EMISOR": emisor,
+      "ESTADO": estado,
     });
     var _headers = {
       "Authorization": autorizacionGlobal,
@@ -73,7 +78,7 @@ class _PrimeraState extends State<Primera> {
 
       for ( var item in jsonData["MQ0203A_DATAREQ"]){
         list.add(
-          Mq0203ADatareq(item["Nro_Orden"],item["Nro_Orden"],item["Descripcion"],item["Fecha"]),);
+          Mq0203ADatareq(item["Nro_Orden"],item["Tipo_Orden"],item["Descripcion"],item["Fecha"]),);
 
        // datos = (jsonData["MQ0203A_DATAREQ"] [numero]  ["ORDEN_NRO"]).toString();
 
@@ -82,8 +87,6 @@ class _PrimeraState extends State<Primera> {
         } else {
           datos = ''; // Otra cadena vacía o un valor predeterminado según tus necesidades.
         }
-
-
         lista.add(datos + "\n");
         numero ++;
         datos = "";
@@ -96,8 +99,7 @@ class _PrimeraState extends State<Primera> {
     }
 
   }
-
-
+  
 
   @override
   void initState() {
@@ -107,7 +109,6 @@ class _PrimeraState extends State<Primera> {
 
   @override
   Widget build(BuildContext context) {
-   // final double drawerWidth = MediaQuery.of(context).size.width * 0.3;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -139,179 +140,252 @@ class _PrimeraState extends State<Primera> {
             child: const SizedBox(),
           ),
         ),
-        drawer: Drawer(
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerRight,
-                end: Alignment.centerLeft,
-                colors: <Color>[
-                  Color.fromRGBO(255, 255, 255, 30),
-                  Color.fromRGBO(255, 255, 255, 50),
-                ],
+          drawer: Drawer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent, // Establece el fondo del Drawer como transparente
               ),
-            ),
-            width: MediaQuery.of(context).size.width / 8, // Define el ancho deseado (1/4 de la pantalla)
-            child: ListView(
-              children: [
-                DrawerHeader(
-                  child: Text(
-                    'Menú',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
+              width: MediaQuery.of(context).size.width / 8, // Define el ancho deseado (1/4 de la pantalla)
+              child: ListView(
+                children: [
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerRight,
+                        end: Alignment.centerLeft,
+                        colors: <Color>[
+                          Color.fromRGBO(102, 45, 145, 30),
+                          Color.fromRGBO(212, 20, 90, 50),
+                        ],
+                      ),
                     ),
-                  ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerRight,
-                      end: Alignment.centerLeft,
-                      colors: <Color>[
-                        Color.fromRGBO(102, 45, 145, 30),
-                        Color.fromRGBO(212, 20, 90, 50),
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'images/nombre2.png',
+                          width: 150,
+                          height: 70,
+                        ),
+                        Text(
+                          '\nQTM - MANTENIMIENTO\n          CORRECTIVO\n\n',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-                ListTile(
-                  title: Text('Configuración',
-                    style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.black,
-                  ),),
-                  selected: _selectedIndex == 0,
-                  onTap: () {
-                    _onMenuItemSelected(0);
-                  },
-                ),
-                ListTile(
-                  title: Text('Pendientes',
-                    style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.black,
-                  ),),
-                  selected: _selectedIndex == 1,
-                  onTap: () {
-                    _onMenuItemSelected(1);
-                  },
-                ),
-                ListTile(
-                  title: Text('Nuevo Correctivo',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.black,),),
-                  selected: _selectedIndex == 2,
-                  onTap: () {
-                    _onMenuItemSelected(2);
-                  },
-                ),
-              ],
+                  ListTile(
+                    leading: Icon(Icons.settings,
+                      color: Colors.grey, // Cambia el color del icono
+                    ),
+                    title: Text('Configuración',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),
+                    ),
+                    selected: _selectedIndex == 0,
+                    onTap: () {
+                      _onMenuItemSelected(0);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.checklist),
+                    title: Text('Pendientes',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),),
+                    selected: _selectedIndex == 1,
+                    onTap: () {
+                      _onMenuItemSelected(1);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.library_add_check_rounded),
+                    title: Text('Nuevo Correctivo',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                      ),
+                    ),
+                    selected: _selectedIndex == 2,
+                    onTap: () {
+                      _onMenuItemSelected(2);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+
+
         body: Container(
-          padding: const EdgeInsets.only(bottom: 80),
-          child: PageView(
-            controller: controller,
-            children: [
-              Container(
-                child: Center(child:
-                FutureBuilder(
-                    future:_Listado,
-                    builder:(context, snapshot) {
-                      if (snapshot.hasData){
-                        return GridView.count(
-                          crossAxisCount: 2,
-                          scrollDirection: Axis.vertical,
-                          children: _listaOrdenes( snapshot.data ),
-                        );
-                      } else if (!snapshot.hasData) {
-                        Text("No hay datos");
-                      } else if( snapshot.hasError);{
-                        Center (child :Text ("Estas al día con las ordenes OR "));
-                      }
-                      return  Center( child : CircularProgressIndicator(),
-                      );
-                    }
-                )),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/fondogris_solo.png'),
+                fit: BoxFit.cover, // Ajusta la imagen al contenedor
               ),
-            ],
-          ),
+            ),
+            child: CupertinoScrollbar(
+              isAlwaysShown: true, // Asegura que la barra de desplazamiento siempre se muestre
+              thickness: 11.0, // Ajusta el grosor de la barra de desplazamiento
+              radius: Radius.circular(7.0), // Ajusta el radio de las esquinas de la barra de desplazamiento
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        "PENDIENTES",
+                        style: TextStyle(
+                          color: Color.fromRGBO(102, 45, 145, 30),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    FutureBuilder(
+                      future: _Listado,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(child: Text("Error: ${snapshot.error}"));
+                        } else if (snapshot.hasData) {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              headingRowHeight: 50,
+                              columns: [
+                                DataColumn(
+                                  label: Text("TIPO N°"),
+                                  numeric: true,
+                                ),
+                                DataColumn(
+                                  label: Text("N°"),
+                                  numeric: true,
+                                ),
+                                DataColumn(
+                                  label: Text("INCONVENIENTE"),
+                                  numeric: true,
+                                ),
+                                DataColumn(
+                                  label: Text("FECHA"),
+                                  numeric: true,
+                                ),
+                                DataColumn(
+                                  label: Text("ADJUNTO"),
+                                  numeric: true,
+                                ),
+                              ],
+                              rows: _listaOrdenes(context, snapshot.data), // Asegúrate de pasar el contexto aquí
+                            ),
+                          );
+                        } else {
+                          return Center(child: Text("No hay datos"));
+                        }
+                      },
+                    ),
+                  ],
+                ),  ),
+            ),
         ),
       ),
     );
   }
 }
 
-List  <Widget> _listaOrdenes( data){
-  List<Widget> ordenes = [];
-  for  (var orden in data!){
+List<DataRow> _listaOrdenes( BuildContext context ,data) {
+  List<DataRow> ordenes = [];
+  for (var orden in data) {
     ordenes.add(
-        Card(
-          child: Center(
-              child : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(0.0),
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50)
-                        ),
-                      ),
-                      onPressed: () {
-
-                      },
-                      child:Ink(
-                          child: Container(
-                            decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  //colors: [Color.fromRGBO(212, 20, 90, 10), Color.fromRGBO(102, 45, 145, 50)],
-                                  colors: [Color.fromRGBO(212, 20, 90, 10), Color.fromRGBO(212, 20, 90, 10)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(10)
-                            ),
-                            padding: const EdgeInsets.all(10),
-                            constraints: const BoxConstraints(minWidth: 88.0),
-                            child: Text(
-                              orden.nroOrden != null ? orden.nroOrden.toString() : 'N/A',
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                      )
-                  ),
-                  RichText(
-                    text: TextSpan(
-                        text:   orden.fecha.toString() + " || " + orden.tipoOrden.toString() +   '\n',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color.fromRGBO(102, 45, 145, 30),
-                          fontStyle: FontStyle.normal,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        children: <TextSpan>[
-                          TextSpan(
-                            text:   orden.descripcion.toString()+ "  " +  '\n',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color.fromRGBO(102, 45, 145, 30),
-                              fontStyle: FontStyle.normal,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ]
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              )
+      DataRow(
+        cells: [
+          DataCell(
+            Container(
+              padding: EdgeInsets.all(10), // Ajusta el padding a 0
+              child: Text(
+                orden.tipoOrden != null ? orden.tipoOrden.toString() : 'N/A',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Color.fromRGBO(0, 0, 0, 30),
+                  fontStyle: FontStyle.normal,
+                  fontWeight: FontWeight.w400,
+                ),
+                textAlign: TextAlign.start, // Alinea el texto al principio del margen
+              ),
+            ),
           ),
-        )
+          DataCell(
+            Container(
+              padding: EdgeInsets.all(10), // Ajusta el padding a 0
+              child: Text(
+                orden.nroOrden != null ? orden.nroOrden.toString() : 'N/A',
+                style: TextStyle(
+                  fontSize: 10, // Ajusta el tamaño del texto aquí
+                  color: Color.fromRGBO(0, 0, 0, 30),
+                  fontStyle: FontStyle.normal,
+                  fontWeight: FontWeight.w400,
+                ),              textAlign: TextAlign.start,
+              ),
+            )
+          ),
+          DataCell(
+              Container(
+              padding: EdgeInsets.all(10), // Ajusta el padding a 0
+                child: Text(
+              orden.descripcion != null ? orden.descripcion.toString() : 'N/A',
+              style: TextStyle(
+                fontSize: 10, // Ajusta el tamaño del texto aquí
+                color: Color.fromRGBO(0, 0, 0, 30),
+                fontStyle: FontStyle.normal,
+                fontWeight: FontWeight.w400,
+              ), textAlign: TextAlign.start,
+            ), ),
+          ),
+          DataCell(
+            Container(child :Text(
+              orden.fecha != null ? orden.fecha.toString() : 'N/A',
+              style: TextStyle(
+                fontSize: 10, // Ajusta el tamaño del texto aquí
+                color: Color.fromRGBO(0, 0, 0, 30),
+                fontStyle: FontStyle.normal,
+                fontWeight: FontWeight.w400,
+              ),              textAlign: TextAlign.center,
+            ),)
+          ),
+          DataCell(IconButton(
+                icon: Icon(
+                  Icons.camera_alt,
+                 color: Colors.grey, // Cambia el color del icono a azul (puedes ajustarlo a tu color preferido)
+                   ),
+            onPressed: () async {
+              // Aquí capturas el número de orden al presionar el botón de la cámara
+              final capturedOrderNumber = orden.nroOrden;
+              print('El número de orden capturado es: $capturedOrderNumber');
+              navigateToIncidenteScreen(context);
+              nroOrdenGlobal = capturedOrderNumber.toString();
+
+            },
+              color: Colors.transparent, // Establece el fondo del botón como transparente
+                )
+            )
+        ],
+          ),
     );
   }
   return ordenes;
 }
+
+void navigateToIncidenteScreen(BuildContext context) {
+  Navigator.push(context, MaterialPageRoute(builder: (context) => Incidente()));
+}
+
+
+
+
 

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'Herramientas/SplashScreen.dart';
 import 'Layouts/correctivo.dart';
 import 'Layouts/login_screen.dart';
+import 'Layouts/motivos.dart';
 import 'Layouts/primera.dart';
+import 'Layouts/Incidente.dart';
 
 
 
@@ -25,6 +27,9 @@ class MyApp extends StatelessWidget {
         '/login': (BuildContext context) => const LoginScreen(),
         '/congrats': ( context) =>  Primera(),
         '/correctivo': ( context) =>  MantenimientoScreen(),
+        '/motivo': ( context) =>  motivo(),
+        '/incidente': (BuildContext context) => Incidente(), // Asegúrate de agregar la ruta para Incidente
+
       },
     );
   }

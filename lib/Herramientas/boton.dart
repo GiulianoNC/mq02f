@@ -14,7 +14,7 @@ class MyElevatedButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.borderRadius,
-    this.width =  10.0,
+    this.width =  180.0,
     this.height = 44.0,
     this.gradient = const LinearGradient(
       colors: [Color.fromRGBO(212, 20, 90, 10), Color.fromRGBO(102,45,145,10)],

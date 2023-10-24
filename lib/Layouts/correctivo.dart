@@ -224,9 +224,6 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                     checkpointName: 'UNIDAD',
                     textController: textControllerUnidad,
                     onSelected: (value) {
-                     /* setState(() {
-                        selectedOption = value;
-                      });*/
                       _onCheckboxSelected(0, value);
                     },
                     isChecked: checkboxStates[0], // Agrega el estado del primer checkbox
@@ -235,9 +232,6 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                     checkpointName: 'SERIE',
                     textController: textControllerSerie,
                     onSelected: (value) {
-                     /* setState(() {
-                        selectedOption = value;
-                      });*/
                       _onCheckboxSelected(1, value);
                     },      isChecked: checkboxStates[1], // Agrega el estado del segundo checkbox
                   ),
@@ -245,9 +239,6 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                     checkpointName: 'N° DE EQUIPO',
                     textController: textControllerNumeroEquipo,
                     onSelected: (value) {
-                     /* setState(() {
-                        selectedOption = value;
-                      });*/
                       _onCheckboxSelected(2, value);
                     },      isChecked: checkboxStates[2], // Agrega el estado del tercer checkbox
 
@@ -296,41 +287,12 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                           "Authorization": autorizacionGlobal,
                           'Content-Type': 'application/json',
                         };
-                        /* var _payload = json.encode({
-                          "UNIDAD": "1900003",
-                        });*/
-
 
                         var response = await http.post(url, headers: _headers, body: jsonEncode(body));
 
                         var jsonData = json.decode(response.body);
                         print(jsonData);
 
-                        /*if (jsonData.containsKey("MQ0202B_DATAREQ") && jsonData["MQ0202B_DATAREQ"] != null) {
-                          var dataList = jsonData["MQ0202B_DATAREQ"];
-                          print("Data List Length: ${dataList.length}");
-
-                          if (dataList.isNotEmpty) {
-                            var nroActivo = dataList[0]["NroActivo"];
-                            print('NroActivo: $nroActivo');
-                            nroOrdenGlobal = nroActivo.toString();
-                            navigateToIncidenteScreen(context);
-                          } else {
-                            throw Exception("Error: La lista 'MQ0202B_DATAREQ' está vacía");
-                          }
-                        } else {
-                          throw Exception("Error: La lista 'MQ0202B_DATAREQ' está ausente o es nula");
-                        }
-
-
-                        if (jsonData.containsKey("MQ0202B_DATAREQ") && jsonData["MQ0202B_DATAREQ"].isNotEmpty) {
-                          var nroActivo = jsonData["MQ0202B_DATAREQ"][0]["NroActivo"];
-                          print('NroActivo: $nroActivo');
-                          nroOrdenGlobal = nroActivo.toString();
-                          navigateToIncidenteScreen(context);
-                        } else {
-                          throw Exception("Error: La lista 'MQ0202B_DATAREQ' está vacía o nula");
-                        }*/
 
                            if (jsonData != null) {
                           var dataReq = jsonData[endpoint + '_DATAREQ'];

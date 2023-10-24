@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
-//import '../Herramientas/global.dart';
 import '../Herramientas/global.dart';
 import '../Herramientas/variables_globales.dart';
 import '../Parseo/mq0203a.dart';
@@ -13,7 +12,7 @@ import 'Incidente.dart';
 
 String baseUrl = direc;
 String ordenTipo = "";
-String estado = "";
+//String estado = "";
 String ordenN = "";
 int? selectedOrderNumber;
 
@@ -56,7 +55,7 @@ class _PrimeraState extends State<Primera> {
   }
 
   Future<List <Mq0203ADatareq>?> _getListado() async {
-    var url = Uri.parse(baseUrl + api);
+    var url = Uri.parse(direc + api);
     var _payload = json.encode({
       "EMISOR": emisor,
       "ESTADO": estado,
@@ -71,6 +70,7 @@ class _PrimeraState extends State<Primera> {
     var response = await http.post(url, body: _payload, headers: _headers).timeout(Duration(seconds: 60));
     respuesta =response.body.toString();
 
+    print(respuesta);
 
     if (response.statusCode == 200 ) {
       final jsonData = jsonDecode(response.body);

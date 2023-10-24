@@ -226,7 +226,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   contraGlobal= value2;
                                   global.pass = value2;
                                 }
-                                //estadoAprobacionG = value5;
+                                estadoAprobacionG = value5;
+                                estado = value5;
+                                print (value3 + value2+ value5);
+
                                 var baseUrl =  direccion;
                                 late var api = "/jderest/v3/orchestrator/MQ0203A_ORCH";
                                 //   Future<dynamic> post(String api, dynamic object) async {
@@ -378,6 +381,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onChanged: (value) {
                     value=  value.toUpperCase() ;
                     estados = value;
+                    global.estado=value;
                     global.estadoAprobacionG= value;
                   },
                 )

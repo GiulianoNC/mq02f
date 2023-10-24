@@ -56,12 +56,20 @@ android {
         minSdkVersion 20 // Aumenta la versión mínima a 20 o a la que desees
 
     }
+    signingConfigs {
+        release {
+            storeFile file('C:\\Users\\Quantum\\correctivo.jks')
+            storePassword 'quantum01'
+            keyAlias 'quantum01'
+            keyPassword 'quantum01'
+        }
+    }
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 }

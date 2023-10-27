@@ -16,5 +16,6 @@ var  estado= "";
 var  version ="";
 var nroOrdenGlobal = "";
 var nroActivoGlobal = "";
+var respuestaGlobal= "";
 
 

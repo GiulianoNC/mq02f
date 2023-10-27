@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../Herramientas/boton.dart';
 import '../Herramientas/global.dart';
 import '../Herramientas/variables_globales.dart';
+import 'Incidente.dart';
 
 void main() => runApp(MaterialApp(home: motivo()));
 
@@ -21,7 +22,14 @@ class _motivoState extends State<motivo> {
   final _formKey = GlobalKey<FormState>();
   final _descripcionFocusNode = FocusNode();
 
+  final myController = TextEditingController();
+  final myController2 = TextEditingController();
+  final myController3 = TextEditingController();
+
+  var valueD ="";
+
   int _selectedIndex = 0;
+  bool loading = false; // Nuevo estado para controlar la visibilidad del indicador de progreso
 
   void _onMenuItemSelected(int index) {
     setState(() {
@@ -75,13 +83,30 @@ class _motivoState extends State<motivo> {
               ),
             ),
           ),
-          title: Container(
-            margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
-            child: Image.asset(
-              "images/nombre.png",
-              width: 150,
-              height: 50,
-            ),
+          title:
+          Row(
+              children:[
+                Container(
+                  margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
+                  //padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                  // alignment: Alignment.center,
+                  child: Image.asset("images/nombre.png",
+                    width: 150,
+                    height: 50,
+                  ),
+                ),
+                Expanded(child: Container()), // Esto empujará el ícono hacia la derecha
+                Padding(
+                  padding: EdgeInsets.only(top: 10, right: 10), // Ajusta estos valores según tus preferencias
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    color: Colors.grey, // Cambia el color del ícono de flecha
+                  ),
+                ),
+              ]
           ),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(20.0),
@@ -198,34 +223,43 @@ class _motivoState extends State<motivo> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: double.infinity, // Ocupa  el ancho disponible
-                                child: Center(
-                                  child : Text(
-                                    "DESCRIPCIÓN",
-                                    style: TextStyle(
-                                      color: Color.fromRGBO(102, 45, 145, 30),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 10),
 
-                              TextFormField(
-                                maxLength: 30,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Por favor, ingrese una descripción';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.white, // Establece el color de fondo a blanco
-                                  hintText: "MÁXIMO 30 CARACTERES",
-                                ),
+                              Form(
+                                key: _formKey, // Asigna el _formKey al formulario
+                                child: Column(
+                                 children: [
+                                   Container(
+                                     width: double.infinity, // Ocupa  el ancho disponible
+                                     child: Center(
+                                       child : Text(
+                                         "DESCRIPCIÓN",
+                                         style: TextStyle(
+                                           color: Color.fromRGBO(102, 45, 145, 30),
+                                           fontSize: 13,
+                                           fontWeight: FontWeight.bold,
+                                         ),
+                                       ),
+                                     ),
+                                   ),
+                                   SizedBox(height: 10),
+                                   TextFormField(
+                                     controller: myController,
+                                     maxLength: 30,
+                                     decoration: InputDecoration(
+                                       filled: true,
+                                       fillColor: Colors.white, // Establece el color de fondo a blanco
+                                       hintText: "MÁXIMO 30 CARACTERES",
+                                     ),
+                                     validator: (value) {
+                                       myController.text = value!;
+                                       if (value!.isEmpty) {
+                                         return 'Por favor, complete el campo de descripción';
+                                       }
+                                       return null;
+                                     },
+                                   ),
+                                 ],
+                                )
                               ),
                               SizedBox(height: 20),
                               Container(
@@ -243,6 +277,7 @@ class _motivoState extends State<motivo> {
                               ),
                               SizedBox(height: 10),
                               TextFormField(
+                                controller: myController2,
                                 maxLines: 5, // Ajusta el número máximo de líneas que el campo puede tener
                                 minLines: 5 ,// Ajusta el número mínimo de líneas que el campo puede tener
                                 maxLength: 80,
@@ -268,6 +303,7 @@ class _motivoState extends State<motivo> {
                               ),
                               SizedBox(height: 10),
                               TextFormField(
+                                controller: myController3,
                                 maxLines: 15, // Ajusta el número máximo de líneas que el campo puede tener
                                 minLines: 10, // Ajusta el número mínimo de líneas que el campo puede tener
                                 maxLength: 200,
@@ -282,30 +318,70 @@ class _motivoState extends State<motivo> {
                                 child: Center(
                                   child: MyElevatedButton(
                                     onPressed: () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        var baseUrl =  direc;
-                                        late var api = "/jderest/v3/orchestrator/MQ0201A_ORCH";
-                                        var url = Uri.parse(baseUrl + api);
-                                        var _payload = json.encode({
-                                          "Nro_Activo": " NroActivo",
-                                          "Descripcion1": "DESCRPCION",
-                                          "Descripcion2": "FALLO",
-                                          "Comentario": "COMENTARIO",
-                                          "P48201_Version": version,
-                                        });
-                                        var _headers = {
-                                          "Authorization": autorizacionGlobal,
-                                          'Content-Type': 'application/json',
-                                        };
-                                        var response = await http.post(url, body: _payload, headers: _headers).timeout(Duration(seconds: 60));
-                                        respuesta =response.body.toString();
+                                      setState(() {
+                                        loading = true; // Muestra el indicador de progreso al hacer clic
+                                      });
 
-                                        // Navigator.pushNamed(context, "/motivo");
-                                      }else {
-                                        _showSnackBar(context);
+                                      try{
+                                        if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+                                          var baseUrl =  direc;
+                                          late var api = "/jderest/v3/orchestrator/MQ0201A_ORCH";
+                                          var url = Uri.parse(baseUrl + api);
+                                          var _payload = json.encode({
+                                            "Nro_Activo": nroActivoGlobal,
+                                            "Descripcion1": myController.text,
+                                            "Descripcion2": myController2.text,
+                                            "Comentario": myController3.text,
+                                            "P48201_Version": version,
+                                          });
+                                          var _headers = {
+                                            "Authorization": autorizacionGlobal,
+                                            'Content-Type': 'application/json',
+                                          };
+                                          var response = await http.post(url, body: _payload, headers: _headers).timeout(Duration(seconds: 60));
+                                          respuesta =response.body.toString();
+
+                                          if (response.statusCode == 200) {
+                                            Map<String, dynamic> responseData = json.decode(response.body);
+                                            if (responseData.containsKey("Nro_Orden")) {
+                                              nroOrdenGlobal = responseData["Nro_Orden"].toString();
+
+                                              navigateToIncidenteScreen(context);
+
+                                            }
+                                            if (responseData.containsKey("jde__status") && responseData["jde__status"] == "SUCCESS") {
+                                              // El servidor devolvió una respuesta exitosa, puedes navegar a "/incidente" aquí.
+                                              Navigator.pushNamed(context, "/incidente");
+                                            }
+                                          } else {
+                                            // Manejar el caso en el que no se pudo completar la solicitud (por ejemplo, un error de red).
+                                            _showSnackBar(context);
+                                          }
+
+
+                                          Navigator.pushNamed(context, "/incidente");
+                                        }else {
+                                          _showSnackBar(context);
+
+                                        }
+                                      } catch(e){
+                                        // Manejar errores
+                                        print('Error: $e');
+                                      }finally{
+                                        // Asegúrate de restablecer loading a false después de completar la tarea, ya sea exitosa o con errores.
+                                        setState(() {
+                                          loading = false;
+                                        });
                                       }
+
                                     },
-                                    child: Text("CONTINUAR"),
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text("CONTINUAR"), // Botón "CONTINUAR"
+                                          if (loading)
+                                            CircularProgressIndicator(), // Indicador de progreso (visible cuando loading es true)
+                                        ],)
                                   ),
                                 ),
                               )
@@ -325,4 +401,7 @@ class _motivoState extends State<motivo> {
       ),
     );
   }
+}
+void navigateToIncidenteScreen(BuildContext context) {
+  Navigator.push(context, MaterialPageRoute(builder: (context) => Incidente()));
 }

@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         '/congrats': ( context) =>  Primera(),
         '/correctivo': ( context) =>  MantenimientoScreen(),
         '/motivo': ( context) =>  motivo(),
-        '/incidente': (BuildContext context) => Incidente(), // Asegúrate de agregar la ruta para Incidente
+        '/incidente': (context) => Incidente(), // Asegúrate de agregar la ruta para Incidente
 
       },
     );

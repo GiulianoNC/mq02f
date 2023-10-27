@@ -7,6 +7,7 @@ import '../Herramientas/global.dart';
 import '../Herramientas/variables_globales.dart';
 import '../Parseo/mq202b.dart';
 import 'Incidente.dart';
+import 'motivos.dart';
 
 void main() => runApp(MaterialApp(home: MantenimientoScreen()));
 
@@ -23,6 +24,7 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
   // Lista de estados de los checkboxes
   List<bool> checkboxStates = [false, false, false];
 
+  bool loading = false; // Nuevo estado para controlar la visibilidad del indicador de progreso
 
   // Declarar los controladores aquí
   TextEditingController textControllerUnidad = TextEditingController();
@@ -52,12 +54,18 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
   void initState() {
     super.initState();
     _fetchOptions();
+    if (options.isNotEmpty) {
+      selectedOption = options[0]["Version"] ?? "";
+    } else {
+      selectedOption = "";
+    }
   }
+
 
   //para el tipo de mantenimiento de menu desplegable
   Future<void> _fetchOptions() async {
 
-    late String api = "jderest/v3/orchestrator/MQ0200A_ORCH";
+    late var api = "/jderest/v3/orchestrator/MQ0200A_ORCH";
 
     var url = Uri.parse(baseUrl + api);
 
@@ -70,17 +78,26 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final formreq1 = jsonData["MQ0200A_FORMREQ_1"];
+      print("exito$jsonData");
 
-      for (final option in formreq1) {
-        final descripcion = option["Descripcion"];
-        final version = option["Version"];
-        options.add({"Descripcion": descripcion, "Version": version});
+      if (formreq1 != null) {
+        for (final option in formreq1) {
+          final descripcion = option["Descripcion"];
+          final version = option["Version"];
+          options.add({"Descripcion": descripcion, "Version": version});
+          print("este es $options");
+
+        }
+      }else{
+        print("no entró");
+
       }
 
       setState(() {});
     } else {
       throw Exception("Error al cargar las opciones de mantenimiento");
     }
+
   }
 
 
@@ -103,15 +120,30 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
               ),
             ),
             title:
-            Container(
-              margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
-              //padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-              // alignment: Alignment.center,
-              child: Image.asset("images/nombre.png",
-                width: 150,
-                height: 50,
-              ),
-            ),
+                Row(
+                  children:[
+                    Container(
+                      margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
+                      //padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                      // alignment: Alignment.center,
+                      child: Image.asset("images/nombre.png",
+                        width: 150,
+                        height: 50,
+                      ),
+                    ),
+                    Expanded(child: Container()), // Esto empujará el ícono hacia la derecha
+                    Padding(
+                      padding: EdgeInsets.only(top: 10, right: 10), // Ajusta estos valores según tus preferencias
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        color: Colors.grey, // Cambia el color del ícono de flecha
+                      ),
+                    ),
+                  ]
+                ),
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(20.0),
               child: const SizedBox(),
@@ -257,6 +289,7 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                     onChanged: (value) {
                       setState(() {
                         selectedOption = value ?? '';
+                        version = selectedOption;
                       });
                     },
                     decoration: InputDecoration(
@@ -277,56 +310,72 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
 
                   MyElevatedButton(
                     onPressed: () async {
-                      version = selectedOption;
+                      setState(() {
+                        loading = true; // Muestra el indicador de progreso al hacer clic
+                      });
 
+                      print("estas es la version "+version);
 
-                      Future<void> _fetchData(String endpoint, Map<String, dynamic> body) async {
-                        var url = Uri.parse(direc + endpoint);
-                        print(direc + endpoint);
-                        var _headers = {
-                          "Authorization": autorizacionGlobal,
-                          'Content-Type': 'application/json',
-                        };
+                      try{
+                        Future<void> _fetchData(String endpoint, Map<String, dynamic> body) async {
+                          var url = Uri.parse(baseUrl + endpoint);
+                          var _headers = {
+                            "Authorization": autorizacionGlobal,
+                            'Content-Type': 'application/json',
+                          };
 
-                        var response = await http.post(url, headers: _headers, body: jsonEncode(body));
+                          var response = await http.post(url, headers: _headers, body: jsonEncode(body));
 
-                        var jsonData = json.decode(response.body);
-                        print(jsonData);
+                          var jsonData = json.decode(response.body);
 
-
-                           if (jsonData != null) {
-                          var dataReq = jsonData[endpoint + '_DATAREQ'];
-                          if (dataReq != null && dataReq.length > 0) {
-                            var nroActivo = dataReq[0]['NroActivo'];
-                            if (nroActivo != null) {
-                              print('NroActivo: $nroActivo');
-                              nroOrdenGlobal = nroActivo.toString();
-                              navigateToIncidenteScreen(context);
+                          if (jsonData != null) {
+                            var dataReq = jsonData[endpoint + '_DATAREQ'];
+                            if (dataReq != null && dataReq.length > 0) {
+                              var nroActivo = dataReq[0]['NroActivo'];
+                              if (nroActivo != null) {
+                                print('NroActivo: $nroActivo');
+                                nroOrdenGlobal = nroActivo.toString();
+                                navigateToIncidenteScreen(context);
+                              } else {
+                                throw Exception("Error: El campo 'NroActivo' es nulo");
+                              }
                             } else {
-                              throw Exception("Error: El campo 'NroActivo' es nulo");
+                              navigateToIncidenteScreen(context);
+                              throw Exception("Error: La lista 'DATAREQ' está vacía o nula");
                             }
                           } else {
-                            navigateToIncidenteScreen(context);
-                            throw Exception("Error: La lista 'DATAREQ' está vacía o nula");
+                            throw Exception("Error: El objeto jsonData es nulo");
                           }
-                        } else {
-                          throw Exception("Error: El objeto jsonData es nulo");
                         }
+
+                        if (checkboxStates[0]) {
+                          await _fetchData('jderest/v3/orchestrator/MQ0202B_ORCH', {"UNIDAD": textControllerUnidad.text});
+                          nroActivoGlobal = textControllerUnidad.text.toString();
+                        } else if (checkboxStates[1]) {
+                          await _fetchData('jderest/v3/orchestrator/MQ0202C_ORCH', {"SERIE": textControllerSerie.text});
+                          nroActivoGlobal = textControllerSerie.text.toString();
+                        } else if (checkboxStates[2]) {
+                          nroActivoGlobal = textControllerNumeroEquipo.text.toString();
+
+                        }
+                      }catch(e){
+                        // Manejar errores
+                        print('Error: $e');
+                      }finally{
+                        // Asegúrate de restablecer loading a false después de completar la tarea, ya sea exitosa o con errores.
+                        setState(() {
+                          loading = false;
+                        });
                       }
 
-                      if (checkboxStates[0]) {
-                        await _fetchData('jderest/v3/orchestrator/MQ0202B_ORCH', {"UNIDAD": textControllerUnidad.text});
-                        nroActivoGlobal = textControllerUnidad.text.toString();
-                      } else if (checkboxStates[1]) {
-                        await _fetchData('jderest/v3/orchestrator/MQ0202C_ORCH', {"SERIE": textControllerSerie.text});
-                        nroActivoGlobal = textControllerSerie.text.toString();
-                      } else if (checkboxStates[2]) {
-                        await _fetchData('jderest/v3/orchestrator/MQ0202D_ORCH', {"NRO_EQUIPO": textControllerNumeroEquipo.text});
-                        nroActivoGlobal = textControllerNumeroEquipo.text.toString();
-
-                      }
                     },
-                    child: Text("CONTINUAR"),
+                    child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                        Text("CONTINUAR"), // Botón "CONTINUAR"
+                         if (loading)
+                          CircularProgressIndicator(), // Indicador de progreso (visible cuando loading es true)
+                        ],)
                   ),
                 ],
               ),
@@ -335,8 +384,6 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
       )
     );
   }
-
-
 
   // Método para manejar los cambios en los checkboxes
   void _onCheckboxSelected(int index, String value) {
@@ -377,7 +424,6 @@ class OptionRow extends StatefulWidget {
     required this.isChecked, // Añade el parámetro isChecked
 
   });
-
 
   @override
   _OptionRowState createState() => _OptionRowState();
@@ -445,10 +491,7 @@ class _OptionRowState extends State<OptionRow> {
     );
   }
 }
-
-
-
 void navigateToIncidenteScreen(BuildContext context) {
-  Navigator.push(context, MaterialPageRoute(builder: (context) => Incidente()));
+  Navigator.push(context, MaterialPageRoute(builder: (context) => motivo()));
 }
 

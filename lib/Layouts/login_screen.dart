@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final controller = PageController();
 
   @override
-  void disponse(){
+  void dispose(){
     controller.dispose();
     super.dispose();
   }
@@ -231,9 +231,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 print (value3 + value2+ value5);
 
                                 var baseUrl =  direccion;
+                                direc= direccion;
                                 late var api = "/jderest/v3/orchestrator/MQ0203A_ORCH";
                                 //   Future<dynamic> post(String api, dynamic object) async {
                                 var url = Uri.parse(baseUrl + api);
+                                print("direcion $url");
+
                                 var _payload = json.encode({
                                   "EMISOR":"",
                                   "ESTADO": "",
@@ -242,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 //transformo el usuario y contraseña en base 64
                                 autorizacionGlobal = 'Basic '+base64Encode(utf8.encode('$login:$password'));
                                 print(autorizacionGlobal );
-                                Navigator.pushNamed(context, "/congrats");
+                               Navigator.pushNamed(context, "/congrats");
 
                                 var _headers = {
                                   "Authorization" : autorizacionGlobal,

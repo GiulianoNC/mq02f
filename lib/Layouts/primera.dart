@@ -10,11 +10,12 @@ import 'package:image_picker/image_picker.dart';
 
 import 'Incidente.dart';
 
-String baseUrl = direc;
 String ordenTipo = "";
 //String estado = "";
 String ordenN = "";
 int? selectedOrderNumber;
+
+
 
 class Primera extends StatefulWidget {
   @override
@@ -23,6 +24,8 @@ class Primera extends StatefulWidget {
 
 class _PrimeraState extends State<Primera> {
   int _selectedIndex = 0;
+  ScrollController _scrollController = ScrollController();
+  var baseUrl = direc;
 
   void _onMenuItemSelected(int index) {
     setState(() {
@@ -43,19 +46,26 @@ class _PrimeraState extends State<Primera> {
     }
   }
 
-  late String api = "jderest/v3/orchestrator/MQ0203A_ORCH";
+  late var api = "/jderest/v3/orchestrator/MQ0203A_ORCH";
 
   late Future<List <Mq0203ADatareq>?>   _Listado;
   final controller = PageController();
 
   @override
-  void disponse(){
-    controller.dispose();
+  void dispose() {
+    _scrollController.dispose(); // Libera el controlador
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _Listado = _getListado();
+    _scrollController = ScrollController(); // Inicializa el controlador
+
+  }
   Future<List <Mq0203ADatareq>?> _getListado() async {
-    var url = Uri.parse(direc + api);
+    var url = Uri.parse(baseUrl + api);
     var _payload = json.encode({
       "EMISOR": emisor,
       "ESTADO": estado,
@@ -71,8 +81,10 @@ class _PrimeraState extends State<Primera> {
     respuesta =response.body.toString();
 
     print(respuesta);
+    respuestaGlobal = "este $respuesta";
 
     if (response.statusCode == 200 ) {
+
       final jsonData = jsonDecode(response.body);
       int numero = 0;
 
@@ -95,18 +107,10 @@ class _PrimeraState extends State<Primera> {
       return list;
     } else {
 
-      debugPrint("error");
+      debugPrint("error$respuestaGlobal");
     }
 
   }
-  
-
-  @override
-  void initState() {
-    super.initState();
-    _Listado = _getListado();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -125,15 +129,29 @@ class _PrimeraState extends State<Primera> {
               ),
             ),
           ),
-          title:
-          Container(
-            margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
-            //padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-            // alignment: Alignment.center,
-            child: Image.asset("images/nombre.png",
-              width: 150,
-              height: 50,
-            ),
+          title: Row(
+              children:[
+                Container(
+                  margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
+                  //padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                  // alignment: Alignment.center,
+                  child: Image.asset("images/nombre.png",
+                    width: 150,
+                    height: 50,
+                  ),
+                ),
+                Expanded(child: Container()), // Esto empujará el ícono hacia la derecha
+                Padding(
+                  padding: EdgeInsets.only(top: 10, right: 10), // Ajusta estos valores según tus preferencias
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    color: Colors.grey, // Cambia el color del ícono de flecha
+                  ),
+                ),
+              ]
           ),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(20.0),
@@ -230,10 +248,12 @@ class _PrimeraState extends State<Primera> {
               ),
             ),
             child: CupertinoScrollbar(
-              isAlwaysShown: true, // Asegura que la barra de desplazamiento siempre se muestre
+              controller: _scrollController, // Asigna el controlador a CupertinoScrollbar
+              thumbVisibility: true, // Asegura que la barra de desplazamiento siempre se muestre
               thickness: 11.0, // Ajusta el grosor de la barra de desplazamiento
               radius: Radius.circular(7.0), // Ajusta el radio de las esquinas de la barra de desplazamiento
               child: SingleChildScrollView(
+                controller: _scrollController,  // Asigna el controlador al SingleChildScrollView
                 scrollDirection: Axis.horizontal,
                 child: Column(
                   children: [
@@ -252,10 +272,11 @@ class _PrimeraState extends State<Primera> {
                       future: _Listado,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
+                          return Center(
+                              child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
-                          return Center(child: Text("Error: ${snapshot.error}"));
-                        } else if (snapshot.hasData) {
+                          return Center(child: Text("Error y respuesta$respuestaGlobal ${snapshot.error}" ));
+                        }  else   {
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: DataTable(
@@ -266,7 +287,7 @@ class _PrimeraState extends State<Primera> {
                                   numeric: true,
                                 ),
                                 DataColumn(
-                                  label: Text("N°"),
+                                  label: Text("N° ÓRDEN"),
                                   numeric: true,
                                 ),
                                 DataColumn(
@@ -285,8 +306,6 @@ class _PrimeraState extends State<Primera> {
                               rows: _listaOrdenes(context, snapshot.data), // Asegúrate de pasar el contexto aquí
                             ),
                           );
-                        } else {
-                          return Center(child: Text("No hay datos"));
                         }
                       },
                     ),

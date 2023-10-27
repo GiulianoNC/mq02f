@@ -37,6 +37,7 @@ class _IncidenteState extends State<Incidente> {
   }
 
   int _selectedIndex = 0;
+  bool loading = false; // Nuevo estado para controlar la visibilidad del indicador de progreso
 
   void _onMenuItemSelected(int index) {
     setState(() {
@@ -57,7 +58,7 @@ class _IncidenteState extends State<Incidente> {
     }
   }
 
-  String baseUrl = direc;
+  String baseUrl =direc;
   late String api = "jderest/v2/file/upload";
 
   String obtenerContenidoArchivo(String fileName) {
@@ -120,9 +121,35 @@ class _IncidenteState extends State<Incidente> {
     }
   }
 
-
-
-
+  void showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Envío Exitoso", style: TextStyle(
+          color: Color.fromRGBO(102, 45, 145, 30), // Color RGB (rojo, verde, azul, opacidad)
+          fontSize: 20.0, // Puedes ajustar el tamaño de la fuente según tus preferencias
+        ),),
+        actions: <Widget>[
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(212 , 20, 90, 50)),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+            ),
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          ],
+        );
+      },
+    );
+  }
 
 
   @override
@@ -142,13 +169,29 @@ class _IncidenteState extends State<Incidente> {
               ),
             ),
           ),
-          title: Container(
-            margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
-            child: Image.asset(
-              "images/nombre.png",
-              width: 150,
-              height: 50,
-            ),
+          title: Row(
+              children:[
+                Container(
+                  margin: EdgeInsets.fromLTRB(5, 22, 20, 10),
+                  //padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+                  // alignment: Alignment.center,
+                  child: Image.asset("images/nombre.png",
+                    width: 150,
+                    height: 50,
+                  ),
+                ),
+                Expanded(child: Container()), // Esto empujará el ícono hacia la derecha
+                Padding(
+                  padding: EdgeInsets.only(top: 10, right: 10), // Ajusta estos valores según tus preferencias
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    color: Colors.grey, // Cambia el color del ícono de flecha
+                  ),
+                ),
+              ]
           ),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(20.0),
@@ -310,11 +353,30 @@ class _IncidenteState extends State<Incidente> {
               Container(
                   child: Center(
                       child:MyElevatedButton(
-                        onPressed: () {
-                          // Lógica para finalizar
-                          enviarSolicitud(); // Llama a la función para enviar la solicitud
+                        onPressed: () async {
+                          try{
+                          await  enviarSolicitud(); // Llama a la función para enviar la solicitud
+                          setState(() {
+                            loading = false; // Restablece loading a false después de que la tarea esté completa
+                          });
+                          showConfirmationDialog(context); // Muestra el diálogo de confirmación
+                          }catch(e){
+                            // Manejar errores
+                            print('Error: $e');
+                          }finally{
+                            // Asegúrate de restablecer loading a false después de completar la tarea, ya sea exitosa o con errores.
+                            setState(() {
+                              loading = false;
+                            });
+                          }
                         },
-                        child: Text("FINALIZAR"),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Text("FINALIZAR"), // Botón "CONTINUAR"
+                              if (loading)
+                                CircularProgressIndicator(), // Indicador de progreso (visible cuando loading es true)
+                            ],)
                       ),
                   )
               )

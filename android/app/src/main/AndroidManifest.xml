@@ -6,7 +6,7 @@
 
 
     <application
-        android:label="mq02f"
+        android:label="Mtto. Correctivo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
 

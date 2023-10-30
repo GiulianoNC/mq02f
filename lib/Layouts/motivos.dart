@@ -51,7 +51,6 @@ class _motivoState extends State<motivo> {
   }
 
   void _showSnackBar(BuildContext context) {
-    _descripcionFocusNode.requestFocus();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Por favor, complete el campo de descripción'),

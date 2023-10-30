@@ -25,6 +25,56 @@ class _IncidenteState extends State<Incidente> {
   File? _image;
   final picker = ImagePicker();
 
+  //PARA MOSTRAR MENSAJE EXITOSO
+  OverlayEntry? _overlayEntry;
+
+  void showCustomMessage(BuildContext context, String message) {
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          top: 180,
+          left: 50,
+          right: 50,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              alignment: Alignment.center,
+              child: Card(
+                color: Colors.grey, // Color de fondo del mensaje
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    Overlay.of(context)!.insert(_overlayEntry!);
+
+    // Cierra el mensaje después de un tiempo (por ejemplo, 2 segundos)
+    Future.delayed(Duration(seconds: 2), () {
+      _overlayEntry?.remove();
+    });
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
+
   Future getImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -32,7 +82,19 @@ class _IncidenteState extends State<Incidente> {
       setState(() {
         _image = File(pickedFile.path);
       });
-      print("imagen agregada");
+      showCustomMessage(context, 'AGREGADO EXITOSAMENTE');
+
+    }
+  }
+
+  Future getImageFromCamera() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+      showCustomMessage(context, 'AGREGADO EXITOSAMENTE');
     }
   }
 
@@ -335,19 +397,33 @@ class _IncidenteState extends State<Incidente> {
               ),
               SizedBox(height: 40),
               Container(
-                child: Center(
-                  child: ElevatedButton.icon(
-                  onPressed: () {
-                    getImage(); // Llama a la función para obtener la imagen
-                  },
-                  icon: Icon(Icons.camera_alt),
-                  label: Text("AGREGAR IMÁGENES"),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.transparent, // Color del botón
-                    onPrimary: Colors.blueGrey, // Color del texto del botón
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        getImage();
+                      },
+                      icon: Icon(Icons.photo_camera_back_rounded),
+                      label: Text("ABRIR GALERIA"),
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.transparent,
+                        onPrimary: Colors.blueGrey,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        getImageFromCamera();
+                      },
+                      icon: Icon(Icons.camera_alt),
+                      label: Text("ABRIR CAMARA"),
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.transparent,
+                        onPrimary: Colors.blueGrey,
+                      ),
+                    ),
+                  ],
                 ),
-                )
               ),
               SizedBox(height: 20),
               Container(
@@ -355,10 +431,10 @@ class _IncidenteState extends State<Incidente> {
                       child:MyElevatedButton(
                         onPressed: () async {
                           try{
+                            setState(() {
+                              loading = true; // Restablece loading a false después de que la tarea esté completa
+                            });
                           await  enviarSolicitud(); // Llama a la función para enviar la solicitud
-                          setState(() {
-                            loading = false; // Restablece loading a false después de que la tarea esté completa
-                          });
                           showConfirmationDialog(context); // Muestra el diálogo de confirmación
                           }catch(e){
                             // Manejar errores

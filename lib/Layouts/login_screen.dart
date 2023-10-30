@@ -43,11 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final myController4 = TextEditingController();
   final myController5 = TextEditingController();
 
-
-
-
   Icon icon = Icon (Icons.visibility);
   bool obscure = true;
+  bool loading = false; // Nuevo estado para controlar la visibilidad del indicador de progreso
 
   final controller = PageController();
 
@@ -185,7 +183,94 @@ class _LoginScreenState extends State<LoginScreen> {
                           child:Ink(
                             child:   MyElevatedButton(
                               onPressed: ()  async {
-                                if (direccion.isEmpty || emisor.isEmpty || estados.isEmpty) {
+                                setState(() {
+                                  loading = true; // Muestra el indicador de progreso al hacer clic
+                                });
+
+                                try{
+                                  //yo
+                                  if (direccion.isEmpty){
+                                    direccion = value3;
+                                    global.direc = value3;
+
+                                  }
+                                  if (emisor.isEmpty){
+                                    emisor = value4;
+                                    global.emisor = value4;
+                                  }
+                                  if(login.isEmpty){
+                                    login = value;
+                                    usuarioGlobal = value;
+                                    global.user = value;
+                                  }
+                                  if(password.isEmpty){
+                                    password = value2;
+                                    contraGlobal= value2;
+                                    global.pass = value2;
+                                  }
+                                  estadoAprobacionG = value5;
+                                  estado = value5;
+                                  print (value3 + value2+ value5);
+
+                                  var baseUrl =  direccion;
+                                  direc= direccion;
+                                  late var api = "/jderest/v3/orchestrator/MQ0203A_ORCH";
+                                  //   Future<dynamic> post(String api, dynamic object) async {
+                                  var url = Uri.parse(baseUrl + api);
+                                  print("direcion $url");
+
+                                  var _payload = json.encode({
+                                    "EMISOR":"",
+                                    "ESTADO": "",
+                                  });
+
+                                  //transformo el usuario y contraseña en base 64
+                                  autorizacionGlobal = 'Basic '+base64Encode(utf8.encode('$login:$password'));
+                                  print(autorizacionGlobal );
+                                  Navigator.pushNamed(context, "/congrats");
+
+                                  var _headers = {
+                                    "Authorization" : autorizacionGlobal,
+                                    'Content-Type': 'application/json',
+                                  };
+
+                                  var response = await http.post(url, body: _payload, headers: _headers).timeout(Duration(seconds: 60));
+                                  print("este es el status " + response.statusCode.toString());
+                                  if (response.statusCode == 200) {
+
+                                    // guardar_datos("login","password","direccion","moneda");
+
+                                    Navigator.pushNamed(context, "/congrats");
+
+                                    print("este es el status " + response.statusCode.toString());
+
+
+                                  } else {
+                                    showDialog<String>(
+                                      context: context,
+                                      builder: (BuildContext context) => AlertDialog(
+                                        title: const Text('ERROR'),
+                                        content: const Text('Inicio de sesión o contraseña incorrectos'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, 'Vuelve a intentarlo'),
+                                            child: const Text('Inténtalo de nuevo'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                }catch(e){
+                                  // Manejar errores
+                                  print('Error: $e');
+                                }finally{
+                                  // Asegúrate de restablecer loading a false después de completar la tarea, ya sea exitosa o con errores.
+                                  setState(() {
+                                    loading = false;
+                                  });
+                                }
+                                /*if (direccion.isEmpty || emisor.isEmpty || estados.isEmpty) {
                                   showDialog<String>(
                                     context: context,
                                     builder: (BuildContext context) => AlertDialog(
@@ -204,91 +289,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   );
                                  // Evita realizar la solicitud si falta información.
-                                }
-
-                                //yo
-                                if (direccion.isEmpty){
-                                  direccion = value3;
-                                  global.direc = value3;
-
-                                }
-                                if (emisor.isEmpty){
-                                  emisor = value4;
-                                  global.emisor = value4;
-                                }
-                                if(login.isEmpty){
-                                  login = value;
-                                  usuarioGlobal = value;
-                                  global.user = value;
-                                }
-                                if(password.isEmpty){
-                                  password = value2;
-                                  contraGlobal= value2;
-                                  global.pass = value2;
-                                }
-                                estadoAprobacionG = value5;
-                                estado = value5;
-                                print (value3 + value2+ value5);
-
-                                var baseUrl =  direccion;
-                                direc= direccion;
-                                late var api = "/jderest/v3/orchestrator/MQ0203A_ORCH";
-                                //   Future<dynamic> post(String api, dynamic object) async {
-                                var url = Uri.parse(baseUrl + api);
-                                print("direcion $url");
-
-                                var _payload = json.encode({
-                                  "EMISOR":"",
-                                  "ESTADO": "",
-                                });
-
-                                //transformo el usuario y contraseña en base 64
-                                autorizacionGlobal = 'Basic '+base64Encode(utf8.encode('$login:$password'));
-                                print(autorizacionGlobal );
-                               Navigator.pushNamed(context, "/congrats");
-
-                                var _headers = {
-                                  "Authorization" : autorizacionGlobal,
-                                  'Content-Type': 'application/json',
-                                };
-
-                                var response = await http.post(url, body: _payload, headers: _headers).timeout(Duration(seconds: 60));
-                                print("este es el status " + response.statusCode.toString());
-                                if (response.statusCode == 200) {
-
-                                  // guardar_datos("login","password","direccion","moneda");
-
-                                  Navigator.pushNamed(context, "/congrats");
-
-                                  print("este es el status " + response.statusCode.toString());
+                                }*/
 
 
-                                } else {
-                                  showDialog<String>(
-                                    context: context,
-                                    builder: (BuildContext context) => AlertDialog(
-                                      title: const Text('ERROR'),
-                                      content: const Text('Inicio de sesión o contraseña incorrectos'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, 'Vuelve a intentarlo'),
-                                          child: const Text('Inténtalo de nuevo'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
                               },
                               child: Ink(
                                 decoration: BoxDecoration(
                                   // gradient: LinearGradient(colors: [Colors.red, Colors.green]),
                                 ),
-                                child: Container(
-                                  // padding: const EdgeInsets.all(10),
-                                  //  constraints: const BoxConstraints(minWidth: 88.0),
-                                  child: const Text('INGRESAR', textAlign: TextAlign.center),
-                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children:[
+                                    Container(
+                                      // padding: const EdgeInsets.all(10),
+                                      //  constraints: const BoxConstraints(minWidth: 88.0),
+                                      child: const Text('INGRESAR', textAlign: TextAlign.center),
+                                    ),
+                                    if (loading)
+                                      CircularProgressIndicator(), // Indicador de progreso (visible cuando loading es true)
+                                  ],)
                               ),
                             ),
                           )

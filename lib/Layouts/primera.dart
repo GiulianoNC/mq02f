@@ -240,11 +240,13 @@ class _PrimeraState extends State<Primera> {
           ),
 
 
+
         body: Container(
-            decoration: BoxDecoration(
+          decoration: BoxDecoration(
               image: DecorationImage(
                 image: AssetImage('images/fondogris_solo.png'),
                 fit: BoxFit.cover, // Ajusta la imagen al contenedor
+                alignment: Alignment.center,
               ),
             ),
             child: CupertinoScrollbar(
@@ -255,62 +257,66 @@ class _PrimeraState extends State<Primera> {
               child: SingleChildScrollView(
                 controller: _scrollController,  // Asigna el controlador al SingleChildScrollView
                 scrollDirection: Axis.horizontal,
-                child: Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      child: Text(
-                        "PENDIENTES",
-                        style: TextStyle(
-                          color: Color.fromRGBO(102, 45, 145, 30),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                child: SingleChildScrollView(
+                  scrollDirection:Axis.vertical,
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        child: Text(
+                          "PENDIENTES",
+                          style: TextStyle(
+                            color: Color.fromRGBO(102, 45, 145, 30),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    FutureBuilder(
-                      future: _Listado,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                              child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text("Error y respuesta$respuestaGlobal ${snapshot.error}" ));
-                        }  else   {
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              headingRowHeight: 50,
-                              columns: [
-                                DataColumn(
-                                  label: Text("TIPO N°"),
-                                  numeric: true,
-                                ),
-                                DataColumn(
-                                  label: Text("N° ÓRDEN"),
-                                  numeric: true,
-                                ),
-                                DataColumn(
-                                  label: Text("INCONVENIENTE"),
-                                  numeric: true,
-                                ),
-                                DataColumn(
-                                  label: Text("FECHA"),
-                                  numeric: true,
-                                ),
-                                DataColumn(
-                                  label: Text("ADJUNTO"),
-                                  numeric: true,
-                                ),
-                              ],
-                              rows: _listaOrdenes(context, snapshot.data), // Asegúrate de pasar el contexto aquí
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),  ),
+                      FutureBuilder(
+                        future: _Listado,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text("Error y respuesta$respuestaGlobal ${snapshot.error}" ));
+                          }  else   {
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                headingRowHeight: 50,
+                                columns: [
+                                  DataColumn(
+                                    label: Text("TIPO N°"),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(
+                                    label: Text("N° ÓRDEN"),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(
+                                    label: Text("INCONVENIENTE"),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(
+                                    label: Text("FECHA"),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(
+                                    label: Text("ADJUNTO"),
+                                    numeric: true,
+                                  ),
+                                ],
+                                rows: _listaOrdenes(context, snapshot.data), // Asegúrate de pasar el contexto aquí
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                )
+             ),
             ),
         ),
       ),

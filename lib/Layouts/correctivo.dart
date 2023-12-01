@@ -20,6 +20,7 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
   String selectedOption = "";
   List<Map<String, String>> options = [];
   String baseUrl = direc;
+  String numeroEquipoIngresado = ''; // Variable global para almacenar el número de equipo ingresado
 
   // Lista de estados de los checkboxes
   List<bool> checkboxStates = [false, false, false];
@@ -50,6 +51,7 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
         break;
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -311,12 +313,22 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                   MyElevatedButton(
                     onPressed: () async {
                       setState(() {
-                        loading = true; // Muestra el indicador de progreso al hacer clic
+                        loading = true; // Muestra el indicador de progreso al hacer clicK
                       });
 
+                      String equipo = textControllerNumeroEquipo.text.toString();
                       print("estas es la version "+version);
+                      print("Número de equipo ingresado: $equipo");
 
                       try{
+                        if (equipo.isNotEmpty) {
+                          // Verifica si el string 'equipo' no está vacío
+                          navigateToIncidenteScreen(context);
+                        }
+                        if (version.isNotEmpty) {
+                          // Verifica si el string 'version' no está vacío
+                          navigateToIncidenteScreen(context);
+                        }
                         Future<void> _fetchData(String endpoint, Map<String, dynamic> body) async {
                           var url = Uri.parse(baseUrl + endpoint);
                           var _headers = {
@@ -343,6 +355,7 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                               navigateToIncidenteScreen(context);
                               throw Exception("Error: La lista 'DATAREQ' está vacía o nula");
                             }
+
                           } else {
                             throw Exception("Error: El objeto jsonData es nulo");
                           }
@@ -354,9 +367,17 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                         } else if (checkboxStates[1]) {
                           await _fetchData('jderest/v3/orchestrator/MQ0202C_ORCH', {"SERIE": textControllerSerie.text});
                           nroActivoGlobal = textControllerSerie.text.toString();
+
                         } else if (checkboxStates[2]) {
                           nroActivoGlobal = textControllerNumeroEquipo.text.toString();
-
+                          // Verifica si el checkbox 'N° DE EQUIPO' está seleccionado
+                          // y si hay un valor en el campo de texto correspondiente
+                          // Asigna el valor del número de equipo al almacenamiento global si el checkbox correspondiente está marcado y si hay un valor en el campo de texto
+                          if (checkboxStates[2] && textControllerNumeroEquipo.text.isNotEmpty) {
+                            nroActivoGlobal = textControllerNumeroEquipo.text;
+                          } else {
+                            nroActivoGlobal = ''; // Limpia nroActivoGlobal si el checkbox 'N° DE EQUIPO' no está marcado o si el campo de texto está vacío
+                          }
                         }
                       }catch(e){
                         // Manejar errores
@@ -365,6 +386,8 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
                         // Asegúrate de restablecer loading a false después de completar la tarea, ya sea exitosa o con errores.
                         setState(() {
                           loading = false;
+                          print("esto es el resultado$nroActivoGlobal");
+
                         });
                       }
 
@@ -406,6 +429,20 @@ class _MantenimientoScreenState extends State<MantenimientoScreen> {
       }
       // Asigna la opción seleccionada
       selectedOption = value;
+
+      // Almacena el número de equipo ingresado cuando se marca el tercer checkbox
+      if (index == 2 && value.isNotEmpty) {
+        numeroEquipoIngresado = textControllerNumeroEquipo.text; // Actualiza la variable con el valor del texto ingresado
+      } else {
+        numeroEquipoIngresado = ''; // Limpia la variable si el checkbox está desmarcado o no se ha ingresado ningún número
+      }
+
+      // Actualiza el valor de nroActivoGlobal cuando se marca el checkbox 'N° DE EQUIPO'
+      if (index == 2 && checkboxStates[2]) {
+        nroActivoGlobal = textControllerNumeroEquipo.text;
+      } else {
+        nroActivoGlobal = ''; // Limpia nroActivoGlobal si el checkbox 'N° DE EQUIPO' no está marcado
+      }
     });
   }
 }

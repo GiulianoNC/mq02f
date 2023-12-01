@@ -204,7 +204,7 @@ class _IncidenteState extends State<Incidente> {
             ),
             child: Text('OK'),
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.pushNamed(context, "/congrats");
             },
           ),
           ],
